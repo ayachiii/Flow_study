@@ -1,4 +1,4 @@
-# to calcurate PLI
+# to calculate PLI
 code and data for calculating PLI
 PLI_Analysis
 
