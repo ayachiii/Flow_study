@@ -1,8 +1,8 @@
-# to calculate PLI
-code and data for calculating PLI
-PLI_Analysis
-
-いじった2.ipynbはpracticeしか成功してない😭その理由はpractice以外のcsvファイルは7端子の列まで表示しているから。
-
-SSSEP~.mat(生データ)から、各端子のPLIを算出したcsvファイルの出し方はmat_to_csvフォルダにまとまっている。
+#卒論解析用のプログラムやデータを保存するリポジトリ
+・to calculate PLI　code and data for calculating PLI
+mat_to_csvフォルダは、SSSEP~.mat(生データ)から、各端子のPLIを算出したcsvファイルの出し方。
 現在、yamashita_overloadだけがエラーでてうまくいっていないけど
+
+PLI_Analysis.ipynbはmat_to_csvで作成したcsvファイルを使って一秒ごとのPLIを算出して描画するプログラム。
+PLI_Analysisいじった2.ipynbはpracticeしか成功してない😭その理由はpractice以外のcsvファイルは7端子の列まで表示しているから。
+
