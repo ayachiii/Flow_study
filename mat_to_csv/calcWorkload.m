@@ -1,44 +1,44 @@
-%% ���[�N���[�h���Z�o����v���O����(���펞PLI - �^�X�N��PLI)
-% ���炩���߁APLI_r(���펞PLI)��ʓr�o���K�v������(calcPLI_rest.m)�ŎZ�o�\
-% �܂Ԃ��p�d�ɂ����ꂽ8ch�ł̕��͗p�v���O����
+%% ワークロードを算出するプログラム(正常時PLI - タスク時PLI)
+% あらかじめ、PLI_r(正常時PLI)を別途出す必要がある(calcPLI_rest.m)で算出可能
+% まぶた用電極も入れた8chでの分析用プログラム
 
-%% EEG��ǂݍ���
+%% EEGを読み込む
 task=[];
 task(:,:)=rawdata(:,:);
 disp('load rawdata');
 
-%% �`���l���ݒ� �����]�g�v�f�[�^�ɍ��킹�ĕύX����
-EEG_CH_index = 1:7; % �]�g
+%% チャネル設定 これを脳波計データに合わせて変更する
+EEG_CH_index = 1:7; % 脳波
 FC3_index = 2;
 FC4_index = 3;
 FCz_index = 4;
 ASSR_CH_index = 2:4;
 
-ECG_CH_index = 8; % �S�d�}
-EX1_CH_index = 9; % �g���K�[
-EX2_CH_index = 10; % �t�H�g�f�B�e�N�^
+ECG_CH_index = 8; % 心電図
+EX1_CH_index = 9; % トリガー
+EX2_CH_index = 10; % フォトディテクタ
 
-%% �T���v�����O���g��
+%% サンプリング周波数
 freq=500;
 
-%% �g���K�[���o�͂��āA���o�I��臒l(�ǂ̒l�ȏオ�N���b�N���̎n�܂肩?)��������
+%% トリガーを出力して、視覚的に閾値(どの値以上がクリック音の始まりか?)を見つける
 figure(1)
 subplot(2,1,1);
-plot(task(:,EX1_CH_index)); % EX1 40Hz�N���b�N��
+plot(task(:,EX1_CH_index)); % EX1 40Hzクリック音
 title('Trigger')
 
 subplot(2,1,2);
-plot(task(:,EX2_CH_index)); % EX2 �t�H�g�f�B�e�N�^
+plot(task(:,EX2_CH_index)); % EX2 フォトディテクタ
 title('photo detector')
 
-%% 臒l��ݒ�
-trg_time_t=[];% �g���K�[�̎n�܂�̍s�����擾����
-th_s=-1000;% ������臒l������% �������ق��ɍ��킹��(�ꔭ�ڂ̃g���K�[�����Ɉ��������邾���ł悳����)
+%% 閾値を設定
+trg_time_t=[];% トリガーの始まりの行数を取得する
+th_s=-1000;% ここに閾値を入れる% 小さいほうに合わせる(一発目のトリガーだけに引っかかるだけでよさそう)
 
-%% ���͂���S�Ẵg���K�[���擾
+%% 分析する全てのトリガーを取得
 for i=2:length(task)
-    % 臒l���v���X�̏ꍇ�́A������2�̕s�������t�ɂȂ�
-    if(task(i,EX1_CH_index) < th_s && task(i-1,EX1_CH_index) > th_s)% 臒l���傫�����A�O�̃f�[�^��臒l�����ł���΁A������g���K�[�̊J�n�Ƃ���
+    % 閾値がプラスの場合は、ここの2つの不等号が逆になる
+    if(task(i,EX1_CH_index) < th_s && task(i-1,EX1_CH_index) > th_s)% 閾値より大きくかつ、前のデータが閾値未満であれば、それをトリガーの開始とする
         trg_time_t=[trg_time_t i];
     end
 end
@@ -47,20 +47,20 @@ disp(trg_time_t(1)); % for debug
 disp(trg_time_t(end)); %for debug
 length(task);
 
-% 500step(=1s)���݂̒l���g���K�[�^�C���Ƃ��Ēǉ�(�N���b�N����1s���ɌJ��Ԃ���邽��)
+% 500step(=1s)刻みの値をトリガータイムとして追加(クリック音が1s毎に繰り返されるため)
 for i=2:length(task)/500+1
     trg_time_t(i+1)=trg_time_t(i)+500;
 end
 
-% Kinect�Ƃ̎��ԓ����ׂ̈ɕs�v�ȃf�[�^����菜�� 
-% firstTime = 3207; %% <=�u���ԓ����܂Ƃ�.md�v�Ƀ������Ă��鐔�l������ %%
+% Kinectとの時間同期の為に不要なデータを取り除く 
+% firstTime = 3207; %% <=「時間同期まとめ.md」にメモしてある数値を入れる %%
 % diff = firstTime - trg_time_t(1);
 % firstIndex = diff / 500 + 1;
-% trg_time_t(1:firstIndex-1) = [];% �s�v�ȕ���������
-% ����̓Q�[���J�n��Ƀg���K�[���X�^�[�g���Ă���̂ŁA���v���Ǝv��
+% trg_time_t(1:firstIndex-1) = [];% 不要な部分を消去
+% これはゲーム開始後にトリガーをスタートしているので、大丈夫だと思う
 
-% 20min(=calc_times)�Ԃ̕��͂�z�肵���R�[�h�Ƃ���B
-% ��������ǂ��āAcalc_time�Ԃ̕��͂��ł���悤�ɂ���
+% 20min(=calc_times)間の分析を想定したコードとする。
+% これを改良して、calc_time間の分析をできるようにする
 if contains(subject, "ultra") 
     calc_time = 180; % 3 min
 elseif contains(subject, "practice")
@@ -70,74 +70,75 @@ else
 end
 
 trg_time_t(calc_time+1:end)=[];
-plot(trg_time_t(2:end)-trg_time_t(1:end-1)); %% trigger�m�F % �g���K�[�Ԃ̃f�[�^�����S��500step(1s)�ɂȂ��Ă��邩�����o�I�Ɋm�F����
-xlim([0,calc_time]);% 0~calc_time�܂łőł��؂�(���͂ɂ͂����܂ł����K�v�Ȃ�����)
+plot(trg_time_t(2:end)-trg_time_t(1:end-1)); %% trigger確認 % トリガー間のデータ数が全て500step(1s)になっているかを視覚的に確認する
+xlim([0,calc_time]);% 0~calc_timeまでで打ち切る(分析にはここまでしか必要ないから)
 
-%% epoch�i1�b��؂�j
-div_sec=1;% �ǂ̂��炢�̒����ŋ�؂邩? => �����1s���ɋ�؂�
-EEG_task=task(:,EEG_CH_index);% EEG�f�[�^�����������
-EEG_task(end+1:605000,EEG_CH_index)=0;%% �v���X10s���Ă���(���炭�v���O�������~�܂�Ȃ��悤�ɂ��邽��)((1200 + 10)s * 500hz)
-div_EEG_task=[];% 1s���̔]�g�f�[�^���擾����Ƃ��� % �܂��A3�����ڂ�����60�ł��邪�A�����60s�Ԃ̃f�[�^�������Ă����(PLI�Z�o�ɂ�60s�Ԃ̃f�[�^���K�v)
+%% epoch（1秒区切り）
+div_sec=1;% どのくらいの長さで区切るか? => 今回は1s毎に区切る
+EEG_task=task(:,EEG_CH_index);% EEGデータだけ抜き取る
+EEG_task(end+1:605000,EEG_CH_index)=0;%% プラス10sしている(恐らくプログラムが止まらないようにするため)((1200 + 10)s * 500hz)
+div_EEG_task=[];% 1s毎の脳波データを取得するところ % また、3次元目が毎回60であるが、これは60s間のデータを持っている為(PLI算出には60s間のデータが必要)
 PLI_t=[];
 
-%% PLI�Z�o 60~�ɂȂ��Ă���̂́APLI��1min�̊Ԃ̔]�g���g���ċ��߂Ă���̂ŁA60s�����Ȃ��ƍŏ���PLI���Z�o�ł��Ȃ�����
+%% PLI算出 60~になっているのは、PLIは1minの間の脳波を使って求めているので、60s立たないと最初のPLIを算出できないから
 for n=60:length(trg_time_t)
 %for n=60:1200
     for i=1:60
         time=i+n-60;
-        div_EEG_task(:,:,i)=EEG_task(trg_time_t(time):trg_time_t(time)+freq*div_sec-1,:);% 60s�Ԃ̔]�g�f�[�^���擾
+        div_EEG_task(:,:,i)=EEG_task(trg_time_t(time):trg_time_t(time)+freq*div_sec-1,:);% 60s間の脳波データを取得
     end
     
-    %% �t�[���G�ϊ����Ď��g�������擾
+    %% フーリエ変換して周波数情報を取得
     FT = fft(div_EEG_task);
     POWER=abs(FT).^2;
     len =length(FT);
     f=freq/2*linspace(0,1,len/2+1);
     
-    %% PLI���v�Z
-    % size(FT,2) = 6�ɂȂ�͂� => �`�����l����(�d�ɐ�)
+    %% PLIを計算
+    % size(FT,2) = 6になるはず => チャンネル数(電極数)
     for ch_num=1:size(FT,2)
         PLI_t(:,ch_num,:,n)=squeeze(abs(mean(squeeze(FT(:,ch_num,:))./abs(squeeze(FT(:,ch_num,:))),2)));
     end
 end
-% PLI_t => ������: Hz, ������: �`�����l��(�d��), ��O����: ?(1�̂�), ��l����: ����(60~1200(s))
+% PLI_t => 第一引数: Hz, 第二引数: チャンネル(電極), 第三引数: ?(1のみ), 第四引数: 時間(60~1200(s))
 
-%% ���ʃv���b�g
+%% 結果プロット
 figure(2);
-title("PLI�̎��g������");
+title("PLIの周波数成分");
+calc_time = size(PLI_t, 4);
 plot(PLI_t(2:500,4,1,calc_time)); %2-500Hz
-% for debug => ��͂�A41��40Hz��\���Ă����B
+% for debug => やはり、41が40Hzを表していた。
 
-%% ���ԒP�ʂł�PLI���o��(40Hz�����������o����)
+%% 時間単位でのPLIを出力(40Hz部分だけ抽出する)
 PLI40(1:calc_time, 6) = 0;% for output(40Hz)
 for i = 60:calc_time
-    PLI40(i, EEG_CH_index) = PLI_t(41, EEG_CH_index, 1, i);% �`���l���C���f�b�N�X�͎��R�ɕύX����OK
+    PLI40(i, EEG_CH_index) = PLI_t(41, EEG_CH_index, 1, i);% チャネルインデックスは自由に変更してOK
 end
 
-% output�@��������o�͂����l�́Arest��Ԃ̍����Ƃ��֌W�Ȃ�
+% output　ここから出力される値は、rest状態の差分とか関係ない
 figure(3);
-title("PLI 40Hz�̂�");
+title("PLI 40Hzのみ");
 plot(PLI40(1:calc_time,ASSR_CH_index));
-disp("mean_CH1(�܂Ԃ�) : " + mean(PLI40(60:calc_time,1)));
+disp("mean_CH1(まぶた) : " + mean(PLI40(60:calc_time,1)));
 disp("mean_FC3 : " + mean(PLI40(60:calc_time,2)));
 disp("mean_FC4 : " + mean(PLI40(60:calc_time,3)));
 disp("mean_FCz : " + mean(PLI40(60:calc_time,4)));
 disp("mean_O1 : " + mean(PLI40(60:calc_time,5)));
 disp("mean_O2 : " + mean(PLI40(60:calc_time,6)));
-disp("mean_�܂Ԃ� : " + mean(PLI40(60:calc_time,7)));
+disp("mean_まぶた : " + mean(PLI40(60:calc_time,7)));
 disp("meanAll : " + mean(mean(PLI40(60:calc_time,:))));
 disp("mean FC2,FC3,FCz : " + mean(mean(PLI40(60:calc_time,ASSR_CH_index))));
 
-%% PLI_r�̕��ς����߂�(60s ~ => 60s�ȑO�͑S��0�̂���)
-% mean(PLI_r(41,1:5,1,60:300), 4);% ���̈�s�ŋ��߂�ꂽ�̂ŁA���ɒ��ڂԂ�����
-%% rest-task�̎��ԕψ�(workload���Z�o����)(PLI_r�K�v)
+%% PLI_rの平均を求める(60s ~ => 60s以前は全て0のため)
+% mean(PLI_r(41,1:5,1,60:300), 4);% この一行で求められたので、下に直接ぶち込んだ
+%% rest-taskの時間変異(workloadを算出する)(PLI_r必要)
 concentration(1:calc_time)=0;
 for i=60:calc_time
     concentration(i,EEG_CH_index)=mean(PLI_r(41,EEG_CH_index,1,60:calc_time), 4) - PLI_t(41,EEG_CH_index,1,i);
 end
 
-% C3, Cz, C4�𕽋ς��āAworkload�Ƃ��Ă��ǂ�
-% �ȉ��́A�S�Ă̓d�ɂ̃��[�N���[�h���v���b�g����
+% C3, Cz, C4を平均して、workloadとしても良い
+% 以下は、全ての電極のワークロードをプロットする
 figure(4);
 plot(concentration(1:calc_time,FC3_index));
 title("workload FC3");
@@ -149,3 +150,4 @@ title("workload FC4");
 figure(6);
 plot(concentration(1:calc_time,FCz_index));
 title("workload FCz");
+
