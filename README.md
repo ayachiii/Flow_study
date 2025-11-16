@@ -21,4 +21,12 @@ LF,HFはどの値をとってるのかわからない
 
 # 次の目標　
 csvの一人分を全部揃わせること
-HRV、PLI、アンケート、kubios_HRVをつなげること
+今足りないもの(last yearの中で)
+・ECG:kumakura_HRV.csv
+・PLIdata:mean_PLI_kumakura.csv
+・HRV_and_PLI.csv              (←HRV、PLI、アンケート、kubios_HRVをつなげること)
+・kubios_HRV.csv
+・qustionnaire.csv
+
+
+
