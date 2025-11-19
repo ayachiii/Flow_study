@@ -39,6 +39,8 @@ csvの一人分を全部揃わせること
 
 ・HRV_and_PLI.csv              (←HRV、PLI、アンケート、kubios_HRVをつなげること)
 
+HRV,PLI,アンケート,kubios_HRVの結合はconcat_HRV_PLI_Qでできそうだが、正規化、標準化をするコードがどこにあるのかわからない。それを探す。
+
 
 
 
