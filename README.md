@@ -63,4 +63,10 @@ focus_on_single_subject自作.ipynbにて、FczのconcentrationとLFを描画す
 
 回帰分析:Boredom,Flow,Flow_ultra,Overloadでの回帰分析。有意性を確認して、注目するべき指標を紹介している。今回でいうと、FC3とHF/LF
 
+# 今後の展望
 
+SVMによるフロー判別の自動化
+
+フローになった瞬間の周波数分析、事象関連電位などまだまだ解析方法はありそう
+
+イメージトレーニングの全般
